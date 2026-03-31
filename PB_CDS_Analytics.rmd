@@ -27,3 +27,10 @@ library(tidyr)
 library(readxl)
 library(fuzzyjoin)
 ```
+
+## Load Data
+```{r load-data, message=FALSE, warning=FALSE}
+# Load the ZIP code data
+fu_ap_gifts <- read.csv("fund_appeal.csv", header = TRUE)
+product_gifts <- read.csv("productpurchase.csv", header = TRUE)
+```
