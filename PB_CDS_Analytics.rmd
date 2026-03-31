@@ -29,8 +29,13 @@ library(fuzzyjoin)
 ```
 
 ## Load Data
-```{r load-data, message=FALSE, warning=FALSE}
+All data are greater than or equal to 1/1/2020
+```{r load-data, message=FALSE, warning=FALSE, cache=}
 # Load the ZIP code data
 fu_ap_gifts <- read.csv("fund_appeal.csv", header = TRUE)
 product_gifts <- read.csv("productpurchase.csv", header = TRUE)
+```
+
+```{r latest-gift-date}
+
 ```
