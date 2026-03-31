@@ -1,0 +1,29 @@
+---
+title: "PB_CDS Analytics"
+output: github_document
+date: "`r Sys.Date()`"
+author: "Khai Nguyen"
+description: "This document explores revenue allocation between PB and CDS"
+Main.Call.Letter: [PB_CDS]
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## GitHub Documents
+
+This is an R Markdown format used for publishing markdown documents to GitHub. When you click the **Knit** button all R code chunks are run and a markdown file (.md) suitable for publishing to GitHub is generated.
+
+## GitHub Documents
+
+This is an R Markdown format used for publishing markdown documents to GitHub. When you click the **Knit** button all R code chunks are run and a markdown file (.md) suitable for publishing to GitHub is generated.
+
+## Libraries
+
+```{r libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+library(tidyr)
+library(readxl)
+library(fuzzyjoin)
+```
