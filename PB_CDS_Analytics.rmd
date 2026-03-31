@@ -36,6 +36,44 @@ fu_ap_gifts <- read.csv("fund_appeal.csv", header = TRUE)
 product_gifts <- read.csv("productpurchase.csv", header = TRUE)
 ```
 
-```{r latest-gift-date}
+## Data Exploration and Data Cleaning
+Explore the structure and contents of the loaded data frames to understand their format and contents
 
+```{r data-exploration, message=FALSE, cache = TRUE, echo = TRUE}
+# fu_ap_gifts exploration
+str(fu_ap_gifts)
+head(fu_ap_gifts, 5)
+tail(fu_ap_gifts, 5)
+colSums(is.na(fu_ap_gifts)) # Check for NA values in fu_ap_gifts dataframe
+
+## fu_ap_gifts structure update
+### Convert Gift Date from character to Date format
+fu_ap_gifts$Gift.Date <- as.Date(fu_ap_gifts$Gift.Date, format = "%m/%d/%Y")
+
+### Convert Gift Amount from character to numeric format (remove $ and commas)
+fu_ap_gifts$Gift.Amount <- as.numeric(gsub("[\\$,]",
+                                           "",
+                                           fu_ap_gifts$Gift.Amount)
+)
+
+### Convert Constituent.ID to character format
+fu_ap_gifts$Constituent.ID <- as.character(fu_ap_gifts$Constituent.ID)
+
+# product_gifts exploration
+str(product_gifts)
+head(product_gifts, 5)
+tail(product_gifts, 5)
+colSums(is.na(product_gifts)) # Check for NA values in product_gifts dataframe
+
+## product_gifts structure update
+### Convert Gift Date from character to Date format
+product_gifts$Gift.Date <- as.Date(product_gifts$Gift.Date, format = "%m/%d/%Y")
+
+### Convert Gift Amount from character to numeric format (remove $ and commas)
+product_gifts$Gift.Amount <- as.numeric(gsub("[\\$,]",
+                                              "",
+                                              product_gifts$Gift.Amount)
+)
+### Convert Constituent.ID to character format
+product_gifts$Constituent.ID <- as.character(product_gifts$Constituent.ID)
 ```
