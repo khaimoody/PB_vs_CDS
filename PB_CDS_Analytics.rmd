@@ -36,44 +36,74 @@ fu_ap_gifts <- read.csv("fund_appeal.csv", header = TRUE)
 product_gifts <- read.csv("productpurchase.csv", header = TRUE)
 ```
 
-## Data Exploration and Data Cleaning
-Explore the structure and contents of the loaded data frames to understand their format and contents
 
-```{r data-exploration, message=FALSE, cache = TRUE, echo = TRUE}
-# fu_ap_gifts exploration
-str(fu_ap_gifts)
-head(fu_ap_gifts, 5)
-tail(fu_ap_gifts, 5)
-colSums(is.na(fu_ap_gifts)) # Check for NA values in fu_ap_gifts dataframe
+## Data Transformation
+Transform the data frames to prepare for analysis, such as filtering, selecting relevant columns, and creating new variables
 
-## fu_ap_gifts structure update
-### Convert Gift Date from character to Date format
-fu_ap_gifts$Gift.Date <- as.Date(fu_ap_gifts$Gift.Date, format = "%m/%d/%Y")
+### product_gifts transformation
+Categorize the benefits into either listen, read, non_gift, sales_tax, shipping, combo, or other based on benefit.initials.
+The benefit.initials variable is created by extracting the first 2 characters of the Benefit variable.
+The categorization is based on the productpurchase_categories.csv file
+The benefit.category variable is created based on the benefit.initials variable using case_when function.
 
-### Convert Gift Amount from character to numeric format (remove $ and commas)
-fu_ap_gifts$Gift.Amount <- as.numeric(gsub("[\\$,]",
-                                           "",
-                                           fu_ap_gifts$Gift.Amount)
-)
-
-### Convert Constituent.ID to character format
-fu_ap_gifts$Constituent.ID <- as.character(fu_ap_gifts$Constituent.ID)
-
-# product_gifts exploration
+```{r product_gifts_transformation, message=FALSE, cache = TRUE, echo = TRUE}
+# New variable, Fund.Description, with value "Product Purchase"
 str(product_gifts)
-head(product_gifts, 5)
-tail(product_gifts, 5)
-colSums(is.na(product_gifts)) # Check for NA values in product_gifts dataframe
+dim(product_gifts)
 
-## product_gifts structure update
-### Convert Gift Date from character to Date format
-product_gifts$Gift.Date <- as.Date(product_gifts$Gift.Date, format = "%m/%d/%Y")
+product_gifts <- product_gifts %>%
+  mutate(Fund.Description = "Product Purchase") %>%
+  relocate(Fund.Description, .after = Constituent.ID)
 
-### Convert Gift Amount from character to numeric format (remove $ and commas)
-product_gifts$Gift.Amount <- as.numeric(gsub("[\\$,]",
-                                              "",
-                                              product_gifts$Gift.Amount)
-)
-### Convert Constituent.ID to character format
-product_gifts$Constituent.ID <- as.character(product_gifts$Constituent.ID)
+# New variable, benefit.initials, extracting the first 2 characters of Benefit
+product_gifts$benefit.initials <- substr(product_gifts$Benefit, 1, 2)
+unique(product_gifts$benefit.initials)
+
+# QA benefit.initials to categorize them. Check productpurchase_categories.csv
+product_gifts %>%
+  filter(product_gifts$benefit.initials == "E-") %>%
+  View()
+
+# QA benefit.initials == "E-" to resolve its benefits categorization
+product_gifts %>%
+  filter(product_gifts$benefit.initials == "E-") %>%
+  distinct(Benefit) %>%
+  View()
+
+# Replace benefit.initials == "E-" based on the Benefit value
+product_gifts <- product_gifts %>%
+  mutate(benefit.initials = case_when(
+    benefit.initials == "E-" & grepl("CD", Benefit, useBytes = TRUE) ~ "CD",
+    benefit.initials == "E-" & grepl("PB", Benefit, useBytes = TRUE) ~ "PB",
+    benefit.initials == "E-" & grepl("HB", Benefit, useBytes = TRUE) ~ "HB",
+    benefit.initials == "E-" & grepl("MC", Benefit, useBytes = TRUE) ~ "MC",
+    benefit.initials == "E-" & grepl("PT", Benefit, useBytes = TRUE) ~ "PT",
+    TRUE ~ benefit.initials
+  ))
+
+# Categorize records based on benefit.initials
+product_gifts <- product_gifts %>%
+  mutate(benefit.category = case_when(
+    benefit.initials %in% c("Ne", "PB", "Tr", "HB", "SG", "Ca", "PA", "Ma",
+                            "BK", "Gr", "WB", "EB", "EP", "PT", "TD", "Fe",
+                            "Au", "En", "E ") ~ "read",
+    benefit.initials %in% c("MC", "CD", "We", "DV", "Si", "AB", "Mo", "DD",
+                            "MP") ~ "listen",
+    benefit.initials == "CM" ~ "combo",
+    benefit.initials %in% c("Co", "Sp", "Re", "Ra", "Ba", "Ro", "Bo", "Go",
+                            "TK") ~ "non_gift",
+    benefit.initials == "Sa" ~ "sales_tax",
+    benefit.initials %in% c("Sh", "Ex") ~ "shipping",
+    TRUE ~ "other")
+  )
+
+# QA benefit.category
+product_gifts %>%
+  distinct(benefit.category) %>%
+  View()
+
+# QA data structure
+dim(product_gifts)
+head(product_gifts, 10)
+str(product_gifts)
 ```
