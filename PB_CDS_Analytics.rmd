@@ -107,3 +107,89 @@ dim(product_gifts)
 head(product_gifts, 10)
 str(product_gifts)
 ```
+
+### fu_ap_gifts transformation
+Categorize the benefits into either listen, read, combo, 0 normal, or other based on benefit.initials.
+The benefit.initials variable is created by extracting the first 2 characters of either Benefit_Premium or Appeal.Description, whichever is not NA.
+The categorization is based on the productpurchase_categories.csv file
+
+```{r fu_ap_gifts_transformation, message=FALSE, cache = TRUE, echo = TRUE}
+# QA if both Benefit_Premium and Appeal.Description are filled for any record
+head(fu_ap_gifts, 1)
+fu_ap_gifts %>%
+  filter(
+    !is.na(Benefit_Premium) & Benefit_Premium != "" &
+    !is.na(Appeal.Description) & Appeal.Description != ""
+  ) %>%
+  count()
+# There are 0 records with both features filled
+
+# New variable, benefit.initials, extracting the first 2 characters of Benefit_Premium or Appeal.Description
+fu_ap_gifts <- fu_ap_gifts %>%
+  filter(!is.na(Benefit_Premium) | !is.na(Appeal.Description)) %>%
+  mutate(benefit.initials = case_when(
+    !is.na(Benefit_Premium) ~ substr(Benefit_Premium, 1, 2),
+    !is.na(Appeal.Description) ~ substr(Appeal.Description, 1, 2)
+  ))
+str(fu_ap_gifts)
+
+# QA all distinct benefit.initials values
+fu_ap_gifts %>%
+  distinct(benefit.initials) %>%
+  View()
+
+# QA benefit.initials to categorize them. Check productpurchase_categories.csv
+fu_ap_gifts %>%
+  filter(fu_ap_gifts$benefit.initials == "E-") %>%
+  distinct(Benefit_Premium, Appeal.Description) %>%
+  View()
+
+# Replace benefit.initials == "E-" based on the Benefit value
+fu_ap_gifts <- fu_ap_gifts %>%
+  mutate(benefit.initials = case_when(
+    benefit.initials == "E-" & grepl("CD", Benefit_Premium, useBytes = TRUE) ~ "CD",
+    benefit.initials == "E-" & grepl("PB", Benefit_Premium, useBytes = TRUE) ~ "PB",
+    benefit.initials == "E-" & grepl("HB", Benefit_Premium, useBytes = TRUE) ~ "HB",
+    benefit.initials == "E-" & grepl("MC", Benefit_Premium, useBytes = TRUE) ~ "MC",
+    benefit.initials == "E-" & grepl("PT", Benefit_Premium, useBytes = TRUE) ~ "PT",
+    benefit.initials == "E-" & grepl("2024 Wh", Benefit_Premium, useBytes = TRUE) ~ "PB",
+    TRUE ~ benefit.initials
+  ))
+
+# Categorize records based on benefit.initials
+fu_ap_gifts <- fu_ap_gifts %>%
+  mutate(benefit.category = case_when(
+    benefit.initials %in% c("HB", "PB", "Ne", "Ca", "TD", "WB",
+                            "PT", "01", "Ma", "Fe", "Ju", "Au",
+                            "Se", "EP", "E ", "En") ~ "read",
+    benefit.initials %in% c("CD", "MC", "DV", "DD") ~ "listen",
+    benefit.initials == "CM" ~ "combo",
+    benefit.initials == "" ~ "0 normal",
+    TRUE ~ "other")
+  )
+
+# QA benefit.category
+fu_ap_gifts %>%
+  distinct(benefit.category) %>%
+  View()
+
+# New variable, Benefit.Count, counting the number of benefits for each record
+fu_ap_gifts <- fu_ap_gifts %>%
+  mutate(Benefit.Count = if_else(
+    (!is.na(Benefit_Premium) & Benefit_Premium != "") |
+      (!is.na(Appeal.Description) & Appeal.Description != ""),
+    1, 0
+  ))
+
+# New variable, Benefit, consolidating Benefit_Premium and Appeal.Description
+fu_ap_gifts <- fu_ap_gifts %>%
+  mutate(Benefit = coalesce(
+    na_if(Benefit_Premium, ""),
+    na_if(Appeal.Description, "")
+  ))
+
+# Remove the original Benefit_Premium and Appeal.Description columns
+fu_ap_gifts <- fu_ap_gifts %>%
+  select(-Benefit_Premium, -Appeal.Description)
+str(fu_ap_gifts)
+```
