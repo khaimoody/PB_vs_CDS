@@ -219,6 +219,7 @@ product_gifts <- product_gifts %>%
 combined_gifts <- bind_rows(fu_ap_gifts, product_gifts)
 str(combined_gifts)
 
+<<<<<<< HEAD
 # QA for any NA values
 colSums(is.na(combined_gifts))
 
@@ -240,3 +241,8 @@ combined_gifts <- combined_gifts %>%
 # Write the combined data frame to a CSV file for further analysis
 # write.csv(combined_gifts, "read_vs_listen.csv", row.names = FALSE)
 ```
+=======
+# Write the combined data frame to a CSV file for further analysis
+# write.csv(combined_gifts, "read_vs_listen.csv", row.names = FALSE)
+```
+>>>>>>> 9367aa815d00edc14f95b80c80b5501c9a23148d
