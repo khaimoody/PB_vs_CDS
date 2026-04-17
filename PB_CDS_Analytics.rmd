@@ -193,3 +193,32 @@ fu_ap_gifts <- fu_ap_gifts %>%
   select(-Benefit_Premium, -Appeal.Description)
 str(fu_ap_gifts)
 ```
+
+### Data Merge
+Merge the two data frames, fu_ap_gifts and product_gifts, using a full join on the common columns.
+This will allow us to analyze the combined data for revenue allocation between PB and CDS.
+
+```{r data-merge, message=FALSE, cache = TRUE, echo = TRUE}
+# QA data structure
+str(product_gifts)
+str(fu_ap_gifts)
+
+# Rearrange product_gifts to have the same column order as fu_ap_gifts
+product_gifts <- product_gifts %>%
+  select(Gift.Import.ID,
+         Constituent.ID,
+         Fund.Description,
+         Gift.Amount,
+         Gift.Date,
+         benefit.initials,
+         benefit.category,
+         Benefit.Count,
+         Benefit)
+
+# Append product_gifts to fu_ap_gifts using bind_rows
+combined_gifts <- bind_rows(fu_ap_gifts, product_gifts)
+str(combined_gifts)
+
+# Write the combined data frame to a CSV file for further analysis
+# write.csv(combined_gifts, "read_vs_listen.csv", row.names = FALSE)
+```
